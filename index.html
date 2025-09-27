@@ -248,9 +248,26 @@
         <div class="container">
             <h2 class="section-title">Customer Reviews</h2>
             
-            <!-- Existing Reviews Display -->
-            <div class="reviews-grid" id="reviewsGrid">
-                <div class="loading-spinner">Loading reviews...</div>
+            <!-- Reviews Carousel -->
+            <div class="reviews-carousel-container">
+                <div class="reviews-carousel" id="reviewsCarousel">
+                    <div class="loading-spinner">Loading reviews...</div>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <button class="carousel-btn prev-btn" id="prevBtn" aria-label="Previous review">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <button class="carousel-btn next-btn" id="nextBtn" aria-label="Next review">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                
+                <!-- Dots Indicator -->
+                <div class="carousel-dots" id="carouselDots"></div>
             </div>
             
             <!-- Add Review Section -->
@@ -329,7 +346,7 @@
                     <p><span style="margin-right: 8px;">📞</span> <a href="tel:9842174311">9842174311</a></p>
                     <p><span style="margin-right: 8px;">📞</span> <a href="tel:9025515662">9025515662</a></p>
                     <p><span style="margin-right: 8px;">📧</span> <a href="mailto:thirupathitravels2@gmail.com">thirupathitravels2@gmail.com</a></p>
-                    <p><span style="margin-right: 8px;">🕒</span> Available 24/7</p>
+                    <p><span style="margin-right: 8px;">🕐</span> Available 24/7</p>
                     <a href="https://wa.me/917904444622?text=Hello%20Thirupathi%20Travels,%20I%20would%20like%20to%20book%20a%20car%20rental%20service" class="whatsapp-button" style="margin-top: 24px; color: #25d366; background: white;">WhatsApp Us</a>
                 </div>
                 <div class="contact-form">

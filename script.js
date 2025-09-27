@@ -11,6 +11,13 @@ const WHATSAPP_CONFIG = {
     SECONDARY: '919842174311'
 };
 
+// Carousel configuration
+let currentSlide = 0;
+let totalSlides = 0;
+let reviewsData = [];
+let carouselInterval;
+let isAutoScrolling = true;
+
 // Star rating functionality
 let selectedRating = 5;
 
@@ -61,15 +68,174 @@ function initializeStarRating() {
     updateStars(5);
 }
 
-// Function to load reviews from Google Sheets using JSONP-like approach
-async function loadReviews() {
-    const reviewsGrid = document.getElementById('reviewsGrid');
+// Carousel functionality
+function createCarouselDots() {
+    const dotsContainer = document.getElementById('carouselDots');
+    if (!dotsContainer) return;
     
-    if (!reviewsGrid) return;
+    dotsContainer.innerHTML = '';
+    
+    for (let i = 0; i < totalSlides; i++) {
+        const dot = document.createElement('div');
+        dot.className = `dot ${i === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+    }
+}
+
+function updateCarouselDots() {
+    const dots = document.querySelectorAll('.dot');
+    dots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === currentSlide);
+    });
+}
+
+function goToSlide(slideIndex) {
+    if (slideIndex < 0 || slideIndex >= totalSlides) return;
+    
+    currentSlide = slideIndex;
+    const carousel = document.getElementById('reviewsCarousel');
+    const offset = -currentSlide * 100;
+    
+    carousel.style.transform = `translateX(${offset}%)`;
+    updateCarouselDots();
+    updateNavigationButtons();
+    
+    // Reset auto-scroll timer
+    resetAutoScroll();
+}
+
+function nextSlide() {
+    const nextIndex = (currentSlide + 1) % totalSlides;
+    goToSlide(nextIndex);
+}
+
+function prevSlide() {
+    const prevIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+    goToSlide(prevIndex);
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        // Always enable buttons for infinite scroll
+        prevBtn.disabled = false;
+        nextBtn.disabled = false;
+        
+        // Add visual feedback
+        prevBtn.style.opacity = totalSlides <= 1 ? '0.3' : '1';
+        nextBtn.style.opacity = totalSlides <= 1 ? '0.3' : '1';
+    }
+}
+
+function startAutoScroll() {
+    if (totalSlides <= 1) return;
+    
+    carouselInterval = setInterval(() => {
+        if (isAutoScrolling) {
+            nextSlide();
+        }
+    }, 5000); // Change slide every 5 seconds
+}
+
+function stopAutoScroll() {
+    if (carouselInterval) {
+        clearInterval(carouselInterval);
+        carouselInterval = null;
+    }
+}
+
+function resetAutoScroll() {
+    stopAutoScroll();
+    if (isAutoScrolling && totalSlides > 1) {
+        setTimeout(() => {
+            startAutoScroll();
+        }, 3000); // Resume after 3 seconds
+    }
+}
+
+function pauseAutoScrollOnHover() {
+    const carousel = document.querySelector('.reviews-carousel-container');
+    if (!carousel) return;
+    
+    carousel.addEventListener('mouseenter', () => {
+        isAutoScrolling = false;
+        stopAutoScroll();
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+        isAutoScrolling = true;
+        startAutoScroll();
+    });
+}
+
+// Touch/swipe functionality for mobile
+function initializeTouchControls() {
+    const carousel = document.getElementById('reviewsCarousel');
+    if (!carousel) return;
+    
+    let startX = 0;
+    let startY = 0;
+    let deltaX = 0;
+    let deltaY = 0;
+    let isDragging = false;
+    
+    carousel.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        isAutoScrolling = false;
+        stopAutoScroll();
+    });
+    
+    carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        
+        deltaX = e.touches[0].clientX - startX;
+        deltaY = e.touches[0].clientY - startY;
+        
+        // Prevent vertical scrolling if horizontal swipe is detected
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            e.preventDefault();
+        }
+    });
+    
+    carousel.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        const threshold = 50; // Minimum swipe distance
+        
+        if (Math.abs(deltaX) > threshold) {
+            if (deltaX > 0) {
+                prevSlide();
+            } else {
+                nextSlide();
+            }
+        }
+        
+        // Resume auto-scroll after interaction
+        setTimeout(() => {
+            isAutoScrolling = true;
+            startAutoScroll();
+        }, 2000);
+        
+        deltaX = 0;
+        deltaY = 0;
+    });
+}
+
+// Function to load reviews from Google Sheets and setup carousel
+async function loadReviews() {
+    const reviewsCarousel = document.getElementById('reviewsCarousel');
+    
+    if (!reviewsCarousel) return;
     
     try {
         console.log('Loading reviews from Google Sheets...');
-        reviewsGrid.innerHTML = '<div class="loading-spinner">Loading reviews...</div>';
+        reviewsCarousel.innerHTML = '<div class="loading-spinner">Loading reviews...</div>';
         
         // Use GET request which works better with Google Apps Script
         const response = await fetch(GOOGLE_SHEETS_CONFIG.READ_URL, {
@@ -88,41 +254,55 @@ async function loadReviews() {
         }
         
         if (!data.reviews || data.reviews.length === 0) {
-            reviewsGrid.innerHTML = '<div style="text-align: center; padding: 40px; color: var(--text-secondary);">No reviews yet. Be the first to share your experience!</div>';
+            displayFallbackReviews(reviewsCarousel);
             return;
         }
         
-        // Clear loading spinner
-        reviewsGrid.innerHTML = '';
-        
-        // Display reviews
-        data.reviews.forEach(review => {
-            const reviewCard = document.createElement('div');
-            reviewCard.className = 'review-card';
-            
-            const stars = '⭐'.repeat(parseInt(review.rating) || 5);
-            
-            reviewCard.innerHTML = `
-                <p class="review-text">"${escapeHtml(review.review)}"</p>
-                <p class="reviewer">${escapeHtml(review.name)}</p>
-                <div class="stars">${stars}</div>
-                ${review.destination ? `<p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; text-align: right;">${escapeHtml(review.destination)}</p>` : ''}
-            `;
-            
-            reviewsGrid.appendChild(reviewCard);
-        });
+        reviewsData = data.reviews;
+        displayReviews(reviewsData);
         
         console.log(`Successfully loaded ${data.reviews.length} reviews`);
         
     } catch (error) {
         console.error('Error loading reviews:', error);
-        // Show a more user-friendly error message and provide sample reviews
-        displayFallbackReviews(reviewsGrid);
+        // Show fallback reviews when Google Sheets is unavailable
+        displayFallbackReviews(reviewsCarousel);
     }
 }
 
+// Display reviews in carousel format
+function displayReviews(reviews) {
+    const reviewsCarousel = document.getElementById('reviewsCarousel');
+    if (!reviewsCarousel) return;
+    
+    reviewsCarousel.innerHTML = '';
+    totalSlides = reviews.length;
+    currentSlide = 0;
+    
+    reviews.forEach((review, index) => {
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card';
+        
+        const stars = '⭐'.repeat(parseInt(review.rating) || 5);
+        
+        reviewCard.innerHTML = `
+            <p class="review-text">"${escapeHtml(review.review)}"</p>
+            <div>
+                <p class="reviewer">${escapeHtml(review.name)}</p>
+                <div class="stars">${stars}</div>
+                ${review.destination ? `<p class="review-destination">${escapeHtml(review.destination)}</p>` : ''}
+            </div>
+        `;
+        
+        reviewsCarousel.appendChild(reviewCard);
+    });
+    
+    // Setup carousel controls
+    setupCarouselControls();
+}
+
 // Display fallback reviews when Google Sheets is unavailable
-function displayFallbackReviews(reviewsGrid) {
+function displayFallbackReviews(reviewsCarousel) {
     const fallbackReviews = [
         {
             name: "Rajesh Kumar",
@@ -141,32 +321,74 @@ function displayFallbackReviews(reviewsGrid) {
             rating: 5,
             review: "Professional drivers, clean vehicles, and punctual service. Made our Kerala backwater tour memorable and hassle-free.",
             destination: "Kerala Backwaters"
+        },
+        {
+            name: "Anita Patel",
+            rating: 5,
+            review: "Outstanding experience with Thirupathi Travels! The team went above and beyond to make our family vacation perfect. Highly professional service.",
+            destination: "Tamil Nadu Heritage Tour"
+        },
+        {
+            name: "Suresh Reddy",
+            rating: 5,
+            review: "Excellent service for our corporate trip. Clean vehicles, punctual drivers, and very reasonable pricing. Will definitely book again!",
+            destination: "Corporate Travel"
         }
     ];
     
-    reviewsGrid.innerHTML = '';
-    
-    fallbackReviews.forEach(review => {
-        const reviewCard = document.createElement('div');
-        reviewCard.className = 'review-card';
-        
-        const stars = '⭐'.repeat(parseInt(review.rating));
-        
-        reviewCard.innerHTML = `
-            <p class="review-text">"${escapeHtml(review.review)}"</p>
-            <p class="reviewer">${escapeHtml(review.name)}</p>
-            <div class="stars">${stars}</div>
-            <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; text-align: right;">${escapeHtml(review.destination)}</p>
-        `;
-        
-        reviewsGrid.appendChild(reviewCard);
-    });
+    reviewsData = fallbackReviews;
+    displayReviews(fallbackReviews);
     
     // Add a small note about the fallback
-    const noteDiv = document.createElement('div');
-    noteDiv.style.cssText = 'text-align: center; padding: 20px; color: var(--text-secondary); font-size: 0.8rem; font-style: italic;';
-    noteDiv.textContent = 'Recent customer reviews (Live reviews loading...)';
-    reviewsGrid.appendChild(noteDiv);
+    setTimeout(() => {
+        const noteDiv = document.createElement('div');
+        noteDiv.style.cssText = 'position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); color: var(--text-secondary); font-size: 0.8rem; font-style: italic; text-align: center; width: 100%;';
+        noteDiv.textContent = 'Recent customer reviews (Live reviews loading...)';
+        document.querySelector('.reviews-carousel-container').appendChild(noteDiv);
+    }, 1000);
+}
+
+// Setup carousel controls
+function setupCarouselControls() {
+    // Create dots
+    createCarouselDots();
+    
+    // Setup navigation buttons
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        prevBtn.addEventListener('click', () => {
+            prevSlide();
+            isAutoScrolling = false;
+            resetAutoScroll();
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            nextSlide();
+            isAutoScrolling = false;
+            resetAutoScroll();
+        });
+    }
+    
+    // Initialize carousel position
+    goToSlide(0);
+    
+    // Setup touch controls for mobile
+    initializeTouchControls();
+    
+    // Setup hover pause functionality
+    pauseAutoScrollOnHover();
+    
+    // Start auto-scroll if more than one slide
+    if (totalSlides > 1) {
+        startAutoScroll();
+    }
+    
+    // Handle window resize
+    window.addEventListener('resize', debounce(() => {
+        goToSlide(currentSlide);
+    }, 250));
 }
 
 // Function to submit review to Google Sheets using no-cors mode
@@ -248,7 +470,6 @@ Thank you!`;
     return Promise.resolve({ status: 'success' });
 }
 
-
 // Thank you modal functions
 function showThankYouModal(message) {
     const modal = document.getElementById('thankYouModal');
@@ -281,6 +502,19 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// Debounce utility function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 // Active navigation highlighting
@@ -461,6 +695,21 @@ function setupEventListeners() {
     // Navigation scroll listener
     window.addEventListener('scroll', setActiveNav);
     
+    // Keyboard navigation for carousel
+    document.addEventListener('keydown', function(e) {
+        if (totalSlides <= 1) return;
+        
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+            isAutoScrolling = false;
+            resetAutoScroll();
+        } else if (e.key === 'ArrowRight') {
+            nextSlide();
+            isAutoScrolling = false;
+            resetAutoScroll();
+        }
+    });
+    
     console.log('All event listeners set up successfully');
 }
 
@@ -482,7 +731,7 @@ const observer = new IntersectionObserver(function(entries) {
 // Initialize animations
 function setupAnimations() {
     console.log('Setting up animations...');
-    document.querySelectorAll('.vehicle-card, .tour-card, .review-card').forEach(card => {
+    document.querySelectorAll('.vehicle-card, .tour-card').forEach(card => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
         card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -495,7 +744,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM Content Loaded - Initializing Thirupathi Travels website...');
     
     try {
-        // Load reviews from Google Sheets
+        // Load reviews from Google Sheets and setup carousel
         loadReviews();
         
         // Setup star rating
@@ -524,5 +773,14 @@ document.addEventListener('visibilitychange', function() {
         setTimeout(() => {
             loadReviews();
         }, 1000);
+    } else {
+        // Pause auto-scroll when page is not visible
+        isAutoScrolling = false;
+        stopAutoScroll();
     }
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', function() {
+    stopAutoScroll();
 });

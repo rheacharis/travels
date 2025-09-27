@@ -269,7 +269,7 @@ nav {
     gap: 32px;
 }
 
-.vehicle-card, .tour-card, .review-card {
+.vehicle-card, .tour-card {
     background: var(--white);
     border-radius: 16px;
     padding: 32px;
@@ -280,7 +280,7 @@ nav {
     position: relative;
 }
 
-.vehicle-card:hover, .tour-card:hover, .review-card:hover {
+.vehicle-card:hover, .tour-card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-xl);
 }
@@ -405,11 +405,38 @@ nav {
     font-weight: 700;
 }
 
-/* Reviews Section */
-.reviews-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 32px;
+/* Reviews Carousel Section */
+.reviews-carousel-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    border-radius: 16px;
+    margin-bottom: 60px;
+}
+
+.reviews-carousel {
+    display: flex;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 100%;
+}
+
+.review-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    flex: 0 0 100%;
+    margin-right: 24px;
+    position: relative;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.review-card:last-child {
+    margin-right: 0;
 }
 
 .review-text {
@@ -418,6 +445,7 @@ nav {
     color: var(--text-secondary);
     font-size: 0.9375rem;
     line-height: 1.6;
+    flex-grow: 1;
 }
 
 .reviewer {
@@ -425,13 +453,90 @@ nav {
     color: var(--primary-color);
     text-align: right;
     font-size: 0.875rem;
+    margin-bottom: 8px;
 }
 
 .stars {
     color: #f6ad55;
     font-size: 1.125rem;
     text-align: right;
-    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.review-destination {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: right;
+    font-style: normal;
+}
+
+/* Carousel Navigation Buttons */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--white);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+.carousel-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-50%) scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.carousel-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: translateY(-50%);
+}
+
+.prev-btn {
+    left: -24px;
+}
+
+.next-btn {
+    right: -24px;
+}
+
+/* Carousel Dots */
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot.active {
+    background: var(--secondary-color);
+    transform: scale(1.2);
+}
+
+.dot:hover {
+    background: var(--secondary-color);
+    opacity: 0.7;
 }
 
 /* Star Rating - Interactive */
@@ -815,16 +920,39 @@ footer {
     }
 
     .fleet-grid,
-    .tour-grid,
-    .reviews-grid {
+    .tour-grid {
         grid-template-columns: 1fr;
         gap: 24px;
     }
 
     .vehicle-card,
-    .tour-card,
-    .review-card {
+    .tour-card {
         padding: 24px;
+    }
+
+    /* Mobile Carousel Adjustments */
+    .reviews-carousel-container {
+        margin: 0 -20px 60px -20px;
+        padding: 0 20px;
+    }
+
+    .review-card {
+        flex: 0 0 calc(100% - 0px);
+        margin-right: 16px;
+        padding: 24px;
+    }
+
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .prev-btn {
+        left: -16px;
+    }
+
+    .next-btn {
+        right: -16px;
     }
 
     .contact-grid {
@@ -847,6 +975,11 @@ footer {
         padding: 32px;
         width: 95%;
     }
+
+    .review-methods {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -864,9 +997,13 @@ footer {
     }
 
     .vehicle-card,
-    .tour-card,
+    .tour-card {
+        padding: 20px;
+    }
+
     .review-card {
         padding: 20px;
+        margin-right: 12px;
     }
 
     .contact-form {
@@ -875,5 +1012,44 @@ footer {
 
     .thank-you-content {
         padding: 24px;
+    }
+
+    .carousel-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    .prev-btn {
+        left: -12px;
+    }
+
+    .next-btn {
+        right: -12px;
+    }
+}
+
+/* Smooth scrolling behavior for carousel */
+@media (prefers-reduced-motion: no-preference) {
+    .reviews-carousel {
+        scroll-behavior: smooth;
+    }
+}
+
+/* Touch-friendly carousel for mobile */
+@media (max-width: 768px) {
+    .reviews-carousel {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    .reviews-carousel::-webkit-scrollbar {
+        display: none;
+    }
+    
+    .review-card {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
     }
 }
