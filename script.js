@@ -248,26 +248,6 @@ Thank you!`;
     return Promise.resolve({ status: 'success' });
 }
 
-// Function to send review via WhatsApp
-function sendReviewViaWhatsApp(formData) {
-    const stars = '⭐'.repeat(parseInt(formData.rating) || 5);
-    
-    const message = `Hello Thirupathi Travels!
-
-*Customer Review:*
-👤 Name: ${formData.name}
-⭐ Rating: ${stars} (${formData.rating}/5)
-🎯 Service: ${formData.destination}
-📝 Review: ${formData.review}
-
-This review was submitted through your website.`;
-
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappURL = `https://wa.me/${WHATSAPP_CONFIG.PRIMARY}?text=${encodedMessage}`;
-    
-    window.open(whatsappURL, '_blank');
-    return Promise.resolve({ status: 'success' });
-}
 
 // Thank you modal functions
 function showThankYouModal(message) {
