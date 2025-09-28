@@ -288,16 +288,29 @@ async function loadReviews() {
             return;
         }
         
-        reviewsData = data.reviews;
-        displayReviews(reviewsData);
+        // Randomize reviews if more than 6
+        const reviewsToDisplay = data.reviews.length > 6 ? shuffleArray(data.reviews) : data.reviews;
         
-        console.log(`Successfully loaded ${data.reviews.length} reviews`);
+        reviewsData = reviewsToDisplay;
+        displayReviews(reviewsToDisplay);
+        
+        console.log(`Successfully loaded ${reviewsToDisplay.length} reviews (randomized: ${data.reviews.length > 6})`);
         
     } catch (error) {
         console.error('Error loading reviews:', error);
         // Show fallback reviews when Google Sheets is unavailable
         displayFallbackReviews(reviewsCarousel);
     }
+}
+
+// Function to shuffle/randomize an array using Fisher-Yates algorithm
+function shuffleArray(array) {
+    const shuffled = [...array]; // Create a copy to avoid mutating original
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
 }
 
 // Display fallback reviews when Google Sheets is unavailable
@@ -350,11 +363,26 @@ function displayFallbackReviews(reviewsCarousel) {
             rating: 5,
             review: "Reliable and punctual service for our Munnar honeymoon trip. The Toyota Etios was perfect for the journey. Recommended!",
             destination: "Munnar Honeymoon Package"
+        },
+        {
+            name: "Venkatesh Iyer",
+            rating: 5,
+            review: "Fantastic service for our temple tour circuit. Visited 12 temples across Tamil Nadu in 4 days. Driver was knowledgeable about history and timing.",
+            destination: "12 Temple Circuit Tour"
+        },
+        {
+            name: "Kavitha Nair",
+            rating: 5,
+            review: "Smooth and comfortable ride to Thekkady wildlife sanctuary. Well-maintained Innova Crysta with excellent air conditioning. Professional service!",
+            destination: "Thekkady Wildlife Tour"
         }
     ];
     
-    reviewsData = fallbackReviews;
-    displayReviews(fallbackReviews);
+    // Randomize reviews if more than 6
+    const reviewsToDisplay = fallbackReviews.length > 6 ? shuffleArray(fallbackReviews) : fallbackReviews;
+    
+    reviewsData = reviewsToDisplay;
+    displayReviews(reviewsToDisplay);
     
     // Add a small note about the fallback
     setTimeout(() => {
@@ -882,4 +910,4 @@ document.addEventListener('visibilitychange', function() {
 // Cleanup on page unload
 window.addEventListener('beforeunload', function() {
     stopAutoScroll();
-}); 
+});
