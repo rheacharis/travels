@@ -327,54 +327,6 @@ function displayFallbackReviews(reviewsCarousel) {
             rating: 5,
             review: "Amazing hill station tour to Ooty! Comfortable Toyota Innova and excellent hospitality. Highly recommended for family trips.",
             destination: "Ooty Hill Station"
-        },
-        {
-            name: "Mohammed Ali",
-            rating: 5,
-            review: "Professional drivers, clean vehicles, and punctual service. Made our Kerala backwater tour memorable and hassle-free.",
-            destination: "Kerala Backwaters"
-        },
-        {
-            name: "Anita Patel",
-            rating: 5,
-            review: "Outstanding experience with Thirupathi Travels! The team went above and beyond to make our family vacation perfect. Highly professional service.",
-            destination: "Tamil Nadu Heritage Tour"
-        },
-        {
-            name: "Suresh Reddy",
-            rating: 5,
-            review: "Excellent service for our corporate trip. Clean vehicles, punctual drivers, and very reasonable pricing. Will definitely book again!",
-            destination: "Corporate Travel"
-        },
-        {
-            name: "Lakshmi Krishnan",
-            rating: 5,
-            review: "Perfect Kodaikanal trip with family. The driver was courteous and the vehicle was spotless. Great value for money!",
-            destination: "Kodaikanal Tour"
-        },
-        {
-            name: "Arjun Singh",
-            rating: 5,
-            review: "Booked their Tempo Traveller for a group tour. Spacious, comfortable, and the driver knew all the best routes. Highly satisfied!",
-            destination: "Group Tour Package"
-        },
-        {
-            name: "Deepika Menon",
-            rating: 5,
-            review: "Reliable and punctual service for our Munnar honeymoon trip. The Toyota Etios was perfect for the journey. Recommended!",
-            destination: "Munnar Honeymoon Package"
-        },
-        {
-            name: "Venkatesh Iyer",
-            rating: 5,
-            review: "Fantastic service for our temple tour circuit. Visited 12 temples across Tamil Nadu in 4 days. Driver was knowledgeable about history and timing.",
-            destination: "12 Temple Circuit Tour"
-        },
-        {
-            name: "Kavitha Nair",
-            rating: 5,
-            review: "Smooth and comfortable ride to Thekkady wildlife sanctuary. Well-maintained Innova Crysta with excellent air conditioning. Professional service!",
-            destination: "Thekkady Wildlife Tour"
         }
     ];
     
