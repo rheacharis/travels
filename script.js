@@ -17,6 +17,18 @@ let totalSlides = 0;
 let reviewsData = [];
 let carouselInterval;
 let isAutoScrolling = true;
+let cardsPerSlide = 3; // Desktop: 3 cards per slide, Mobile: 1 card per slide
+
+// Function to determine cards per slide based on screen size
+function getCardsPerSlide() {
+    return window.innerWidth <= 768 ? 1 : 3;
+}
+
+// Function to calculate total slides based on reviews and cards per slide
+function calculateTotalSlides() {
+    const cards = getCardsPerSlide();
+    return Math.ceil(reviewsData.length / cards);
+}
 
 // Star rating functionality
 let selectedRating = 5;
@@ -75,7 +87,9 @@ function createCarouselDots() {
     
     dotsContainer.innerHTML = '';
     
-    for (let i = 0; i < totalSlides; i++) {
+    const totalSlidesCalculated = calculateTotalSlides();
+    
+    for (let i = 0; i < totalSlidesCalculated; i++) {
         const dot = document.createElement('div');
         dot.className = `dot ${i === 0 ? 'active' : ''}`;
         dot.addEventListener('click', () => goToSlide(i));
@@ -91,11 +105,22 @@ function updateCarouselDots() {
 }
 
 function goToSlide(slideIndex) {
-    if (slideIndex < 0 || slideIndex >= totalSlides) return;
+    const totalSlidesCalculated = calculateTotalSlides();
+    if (slideIndex < 0 || slideIndex >= totalSlidesCalculated) return;
     
     currentSlide = slideIndex;
     const carousel = document.getElementById('reviewsCarousel');
-    const offset = -currentSlide * 100;
+    const cards = getCardsPerSlide();
+    
+    // Calculate offset based on cards per slide
+    let offset;
+    if (cards === 1) {
+        // Mobile: move by 100% for each slide (1 card at a time)
+        offset = -currentSlide * 100;
+    } else {
+        // Desktop: move by 100% for each group of 3 cards
+        offset = -currentSlide * 100;
+    }
     
     carousel.style.transform = `translateX(${offset}%)`;
     updateCarouselDots();
@@ -106,18 +131,21 @@ function goToSlide(slideIndex) {
 }
 
 function nextSlide() {
-    const nextIndex = (currentSlide + 1) % totalSlides;
+    const totalSlidesCalculated = calculateTotalSlides();
+    const nextIndex = (currentSlide + 1) % totalSlidesCalculated;
     goToSlide(nextIndex);
 }
 
 function prevSlide() {
-    const prevIndex = (currentSlide - 1 + totalSlides) % totalSlides;
+    const totalSlidesCalculated = calculateTotalSlides();
+    const prevIndex = (currentSlide - 1 + totalSlidesCalculated) % totalSlidesCalculated;
     goToSlide(prevIndex);
 }
 
 function updateNavigationButtons() {
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
+    const totalSlidesCalculated = calculateTotalSlides();
     
     if (prevBtn && nextBtn) {
         // Always enable buttons for infinite scroll
@@ -125,13 +153,14 @@ function updateNavigationButtons() {
         nextBtn.disabled = false;
         
         // Add visual feedback
-        prevBtn.style.opacity = totalSlides <= 1 ? '0.3' : '1';
-        nextBtn.style.opacity = totalSlides <= 1 ? '0.3' : '1';
+        prevBtn.style.opacity = totalSlidesCalculated <= 1 ? '0.3' : '1';
+        nextBtn.style.opacity = totalSlidesCalculated <= 1 ? '0.3' : '1';
     }
 }
 
 function startAutoScroll() {
-    if (totalSlides <= 1) return;
+    const totalSlidesCalculated = calculateTotalSlides();
+    if (totalSlidesCalculated <= 1) return;
     
     carouselInterval = setInterval(() => {
         if (isAutoScrolling) {
@@ -149,7 +178,8 @@ function stopAutoScroll() {
 
 function resetAutoScroll() {
     stopAutoScroll();
-    if (isAutoScrolling && totalSlides > 1) {
+    const totalSlidesCalculated = calculateTotalSlides();
+    if (isAutoScrolling && totalSlidesCalculated > 1) {
         setTimeout(() => {
             startAutoScroll();
         }, 3000); // Resume after 3 seconds
@@ -270,37 +300,6 @@ async function loadReviews() {
     }
 }
 
-// Display reviews in carousel format
-function displayReviews(reviews) {
-    const reviewsCarousel = document.getElementById('reviewsCarousel');
-    if (!reviewsCarousel) return;
-    
-    reviewsCarousel.innerHTML = '';
-    totalSlides = reviews.length;
-    currentSlide = 0;
-    
-    reviews.forEach((review, index) => {
-        const reviewCard = document.createElement('div');
-        reviewCard.className = 'review-card';
-        
-        const stars = '⭐'.repeat(parseInt(review.rating) || 5);
-        
-        reviewCard.innerHTML = `
-            <p class="review-text">"${escapeHtml(review.review)}"</p>
-            <div>
-                <p class="reviewer">${escapeHtml(review.name)}</p>
-                <div class="stars">${stars}</div>
-                ${review.destination ? `<p class="review-destination">${escapeHtml(review.destination)}</p>` : ''}
-            </div>
-        `;
-        
-        reviewsCarousel.appendChild(reviewCard);
-    });
-    
-    // Setup carousel controls
-    setupCarouselControls();
-}
-
 // Display fallback reviews when Google Sheets is unavailable
 function displayFallbackReviews(reviewsCarousel) {
     const fallbackReviews = [
@@ -333,6 +332,24 @@ function displayFallbackReviews(reviewsCarousel) {
             rating: 5,
             review: "Excellent service for our corporate trip. Clean vehicles, punctual drivers, and very reasonable pricing. Will definitely book again!",
             destination: "Corporate Travel"
+        },
+        {
+            name: "Lakshmi Krishnan",
+            rating: 5,
+            review: "Perfect Kodaikanal trip with family. The driver was courteous and the vehicle was spotless. Great value for money!",
+            destination: "Kodaikanal Tour"
+        },
+        {
+            name: "Arjun Singh",
+            rating: 5,
+            review: "Booked their Tempo Traveller for a group tour. Spacious, comfortable, and the driver knew all the best routes. Highly satisfied!",
+            destination: "Group Tour Package"
+        },
+        {
+            name: "Deepika Menon",
+            rating: 5,
+            review: "Reliable and punctual service for our Munnar honeymoon trip. The Toyota Etios was perfect for the journey. Recommended!",
+            destination: "Munnar Honeymoon Package"
         }
     ];
     
@@ -344,12 +361,48 @@ function displayFallbackReviews(reviewsCarousel) {
         const noteDiv = document.createElement('div');
         noteDiv.style.cssText = 'position: absolute; bottom: -40px; left: 50%; transform: translateX(-50%); color: var(--text-secondary); font-size: 0.8rem; font-style: italic; text-align: center; width: 100%;';
         noteDiv.textContent = 'Recent customer reviews (Live reviews loading...)';
+        document.querySelector('.reviews-carousel-container').style.position = 'relative';
         document.querySelector('.reviews-carousel-container').appendChild(noteDiv);
     }, 1000);
 }
 
+// Display reviews in carousel format
+function displayReviews(reviews) {
+    const reviewsCarousel = document.getElementById('reviewsCarousel');
+    if (!reviewsCarousel) return;
+    
+    reviewsCarousel.innerHTML = '';
+    reviewsData = reviews;
+    currentSlide = 0;
+    
+    // Create all review cards
+    reviews.forEach((review, index) => {
+        const reviewCard = document.createElement('div');
+        reviewCard.className = 'review-card';
+        
+        const stars = '⭐'.repeat(parseInt(review.rating) || 5);
+        
+        reviewCard.innerHTML = `
+            <p class="review-text">"${escapeHtml(review.review)}"</p>
+            <div>
+                <p class="reviewer">${escapeHtml(review.name)}</p>
+                <div class="stars">${stars}</div>
+                ${review.destination ? `<p class="review-destination">${escapeHtml(review.destination)}</p>` : ''}
+            </div>
+        `;
+        
+        reviewsCarousel.appendChild(reviewCard);
+    });
+    
+    // Setup carousel controls
+    setupCarouselControls();
+}
+
 // Setup carousel controls
 function setupCarouselControls() {
+    // Update cards per slide based on current screen size
+    cardsPerSlide = getCardsPerSlide();
+    
     // Create dots
     createCarouselDots();
     
@@ -358,13 +411,21 @@ function setupCarouselControls() {
     const nextBtn = document.getElementById('nextBtn');
     
     if (prevBtn && nextBtn) {
-        prevBtn.addEventListener('click', () => {
+        // Remove existing listeners
+        prevBtn.replaceWith(prevBtn.cloneNode(true));
+        nextBtn.replaceWith(nextBtn.cloneNode(true));
+        
+        // Get new references and add listeners
+        const newPrevBtn = document.getElementById('prevBtn');
+        const newNextBtn = document.getElementById('nextBtn');
+        
+        newPrevBtn.addEventListener('click', () => {
             prevSlide();
             isAutoScrolling = false;
             resetAutoScroll();
         });
         
-        nextBtn.addEventListener('click', () => {
+        newNextBtn.addEventListener('click', () => {
             nextSlide();
             isAutoScrolling = false;
             resetAutoScroll();
@@ -381,13 +442,31 @@ function setupCarouselControls() {
     pauseAutoScrollOnHover();
     
     // Start auto-scroll if more than one slide
-    if (totalSlides > 1) {
+    const totalSlidesCalculated = calculateTotalSlides();
+    if (totalSlidesCalculated > 1) {
         startAutoScroll();
     }
     
     // Handle window resize
     window.addEventListener('resize', debounce(() => {
-        goToSlide(currentSlide);
+        const newCardsPerSlide = getCardsPerSlide();
+        if (newCardsPerSlide !== cardsPerSlide) {
+            // Cards per slide changed, recalculate everything
+            cardsPerSlide = newCardsPerSlide;
+            currentSlide = Math.min(currentSlide, calculateTotalSlides() - 1); // Adjust current slide if needed
+            createCarouselDots();
+            goToSlide(currentSlide);
+            
+            // Restart auto-scroll if needed
+            const newTotalSlides = calculateTotalSlides();
+            stopAutoScroll();
+            if (newTotalSlides > 1) {
+                startAutoScroll();
+            }
+        } else {
+            // Just adjust current slide position
+            goToSlide(currentSlide);
+        }
     }, 250));
 }
 
@@ -468,6 +547,25 @@ Thank you!`;
     
     window.open(whatsappURL, '_blank');
     return Promise.resolve({ status: 'success' });
+}
+
+// Function to send review via WhatsApp
+function sendReviewViaWhatsApp(data) {
+    const stars = '⭐'.repeat(parseInt(data.rating) || 5);
+    const message = `Hello Thirupathi Travels!
+
+*Customer Review Submission:*
+👤 Name: ${data.name}
+⭐ Rating: ${stars} (${data.rating}/5)
+🎯 Service/Destination: ${data.destination}
+💬 Review: ${data.review}
+
+Thank you for the excellent service!`;
+
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappURL = `https://wa.me/${WHATSAPP_CONFIG.PRIMARY}?text=${encodedMessage}`;
+    
+    window.open(whatsappURL, '_blank');
 }
 
 // Thank you modal functions
@@ -697,7 +795,8 @@ function setupEventListeners() {
     
     // Keyboard navigation for carousel
     document.addEventListener('keydown', function(e) {
-        if (totalSlides <= 1) return;
+        const totalSlidesCalculated = calculateTotalSlides();
+        if (totalSlidesCalculated <= 1) return;
         
         if (e.key === 'ArrowLeft') {
             prevSlide();
@@ -783,4 +882,4 @@ document.addEventListener('visibilitychange', function() {
 // Cleanup on page unload
 window.addEventListener('beforeunload', function() {
     stopAutoScroll();
-});
+}); 

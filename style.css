@@ -420,13 +420,14 @@ nav {
     width: 100%;
 }
 
+/* Desktop: 3 cards per slide */
 .review-card {
     background: var(--white);
     border-radius: 16px;
     padding: 32px;
     box-shadow: var(--shadow-md);
     border: 1px solid var(--border-color);
-    flex: 0 0 100%;
+    flex: 0 0 calc(33.333% - 16px);
     margin-right: 24px;
     position: relative;
     min-height: 200px;
@@ -930,7 +931,7 @@ footer {
         padding: 24px;
     }
 
-    /* Mobile Carousel Adjustments */
+    /* Mobile Carousel Adjustments - 1 card per slide */
     .reviews-carousel-container {
         margin: 0 -20px 60px -20px;
         padding: 0 20px;
@@ -1035,21 +1036,13 @@ footer {
     }
 }
 
-/* Touch-friendly carousel for mobile */
+/* Hide overflow for cleaner carousel appearance */
+.reviews-carousel-container {
+    padding: 0 20px;
+}
+
 @media (max-width: 768px) {
-    .reviews-carousel {
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-    }
-    
-    .reviews-carousel::-webkit-scrollbar {
-        display: none;
-    }
-    
-    .review-card {
-        scroll-snap-align: start;
-        scroll-snap-stop: always;
+    .reviews-carousel-container {
+        padding: 0;
     }
 }
