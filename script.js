@@ -319,13 +319,13 @@ function displayFallbackReviews(reviewsCarousel) {
         {
             name: "Rajesh Kumar",
             rating: 5,
-            review: "Exceptional service! The driver was highly professional and knowledgeable about all temple locations. Our Rameswaram pilgrimage was flawlessly organized.",
+            review: "Exceptional service!.",
             destination: "Rameswaram Temple Tour"
         },
         {
             name: "Priya Sharma", 
             rating: 5,
-            review: "Amazing hill station tour to Ooty! Comfortable Toyota Innova and excellent hospitality. Highly recommended for family trips.",
+            review: "Amazing hill station tour to Ooty! Comfortable Toyota Innova and excellent hospitality.",
             destination: "Ooty Hill Station"
         }
     ];
