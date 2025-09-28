@@ -398,7 +398,6 @@ nav {
 }
 
 .tour-content li::before {
-    content: '✓';
     position: absolute;
     left: 0;
     color: var(--success-color);
